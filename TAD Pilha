@@ -1,0 +1,119 @@
+Dado uma pilha que armazene números, escreva uma função que 
+forneça o maior, o menor e a média aritmética dos elementos da 
+pilha.
+
+
+ARQUVO Pilha.h
+
+#include<stdio.h> 
+#include<stdlib.h> 
+
+typedef struct Elem{
+	int n; 
+	struct Elem*prox;
+	
+}Elem;
+
+typedef struct Pilha{
+	Elem*topo;
+}Pilha;
+
+Pilha* Criar(){
+	Pilha* pi = (Pilha*) malloc(sizeof(Pilha)); 
+	if(pi!=NULL)
+	pi -> topo = NULL;
+	return pi; 
+}
+
+void Inserir(Pilha*pi,int n){
+	if(pi == NULL)
+	printf("Pilha inexistente"); 
+	
+	Elem* no = (Elem*)malloc(sizeof(Elem));
+	no -> n = n;
+	no -> prox = pi -> topo;
+ 	pi -> topo = no;
+}
+
+int Remover(Pilha*pi){
+	if(pi==NULL)
+	printf("Pilha inexistente"); 
+	
+	Elem * no = pi -> topo;
+	int n = no -> n;
+	pi -> topo = no -> prox;
+	free(no); 
+	return n; 
+	
+}
+
+ void imprimir(Pilha*pi){
+ 	if(pi == NULL)
+ 	printf("Erro");
+ 	
+ 	printf("Elementos da pilha: ");
+ 	Elem* no = pi -> topo;
+	while (no !=NULL){
+		printf("\n %d \n",no -> n);
+		no = no -> prox;
+	}  
+ 	printf("\n");
+ }
+ 
+ void Media(Pilha*pi){
+ 	int maior=0; 
+	int menor,valor=0; 
+	int cont=0; 
+	float media;
+
+	int h= Remover(pi);  
+	menor = h;
+	Inserir(pi,h); 
+		printf(" todos %d_",menor);
+ while(pi -> topo != NULL){
+ 	 h = Remover(pi); 
+ 	cont ++;
+ 	valor= valor + h; 
+	
+if( h > maior)
+maior = h; 
+ 	
+if ( h < menor )
+menor = h;
+
+ }	
+ 	media = valor/cont;
+ 	printf("\n O maior numero e %d \n",maior);
+ 	printf("\n O menor numero e %d \n",menor);
+ 	printf("\n A media aritmetica e %f\n ",media);
+ }
+
+
+
+main.c  
+
+#include <stdio.h>
+#include <stdlib.h>
+#include "Pilha.h"
+
+/* Dado uma pilha que armazene números, escreva uma função que 
+forneça o maior, o menor e a média aritmética dos elementos da 
+pilha. */
+int main(int argc, char *argv[]) {
+	Pilha* pi = Criar();
+	Inserir(pi,7);
+	Inserir(pi,5);
+	Inserir(pi,4);
+	Inserir(pi,3);
+	Inserir(pi,6);
+	
+	imprimir(pi);
+	Media(pi);
+	return 0;
+
+}
+
+
+
+
+
