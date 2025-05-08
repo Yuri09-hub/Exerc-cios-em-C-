@@ -1,0 +1,235 @@
+
+//arquivo .h
+#ifndef BST_H
+#define BST_H
+
+typedef struct No {
+    int chave;
+    struct No *esquerda, *direita;
+} No;
+
+No* criarNo(int chave);
+No* inserir(No* raiz, int chave);
+No* minValorNo(No* no);
+No* remover(No* raiz, int chave);
+int consulta_BST(No *raiz,int chave);
+void preOrdem_BST(No *raiz);
+No* Sucessor(No* raiz, int chave);
+int Primo(int n);
+int contPrimos(No *raiz);
+#endif
+
+
+//arquivo .c
+#include <stdio.h>
+#include <stdlib.h>
+#include "TAD.c"
+
+// Função para criar um novo nó
+No* criarNo(int chave) {
+    No* no = (No*)malloc(sizeof(No));
+    no->chave = chave;
+    no->esquerda = no->direita = NULL;
+    return no;
+}
+
+// Insere uma nova chave na BST
+No* inserir(No* raiz, int chave) {
+    if (raiz == NULL)
+        return criarNo(chave);
+    if (chave < raiz->chave)
+        raiz->esquerda = inserir(raiz->esquerda, chave);
+    else if (chave > raiz->chave)
+        raiz->direita = inserir(raiz->direita, chave);
+    return raiz;
+}
+
+// Encontra o nó com valor mínimo na subárvore
+No* minValorNo(No* no) {
+    No* atual = no;
+    while (atual && atual->esquerda != NULL)
+        atual = atual->esquerda;
+    return atual;
+}
+
+// Remove uma chave da BST
+No* remover(No* raiz, int chave) {
+    if (raiz == NULL)
+        return raiz;
+    if (chave < raiz->chave)
+        raiz->esquerda = remover(raiz->esquerda, chave);
+    else if (chave > raiz->chave)
+        raiz->direita = remover(raiz->direita, chave);
+    else {
+        if (raiz->esquerda == NULL && raiz->direita == NULL) {
+            free(raiz);
+            return NULL;
+        } else if (raiz->esquerda == NULL) {
+            No* temp = raiz->direita;
+            free(raiz);
+            return temp;
+        } else if (raiz->direita == NULL) {
+            No* temp = raiz->esquerda;
+            free(raiz);
+            return temp;
+        }
+        No* temp = minValorNo(raiz->direita);
+        raiz->chave = temp->chave;
+        raiz->direita = remover(raiz->direita, temp->chave);
+    }
+    return raiz;
+}
+
+// Função para buscar um valor na árvore
+No* buscar(No* raiz, int chave) {
+    if (raiz == NULL || raiz->chave == chave) {
+        return raiz;
+    }
+
+    if (chave < raiz->chave) {
+        return buscar(raiz->esquerda, chave);
+    } else {
+        return buscar(raiz->direita, chave);
+    }
+}
+
+void preOrdem_BST(No* raiz) {
+    if (raiz)
+    {
+    	printf("%d ", raiz->chave); // Visita
+        preOrdem_BST(raiz->esquerda);  // Esquerda
+        preOrdem_BST(raiz->direita);  // Direita
+	}
+}
+
+No* Sucessor(No* raiz, int chave) {
+    No* atual = raiz;
+    No* sucessor = NULL;
+
+    while (atual != NULL && atual->chave != chave) {
+        if (chave < atual->chave) {
+            sucessor = atual; 
+            atual = atual->esquerda;
+        } else {
+            atual = atual->direita;
+        }
+    }
+
+    if (atual == NULL) 
+	    return NULL; 
+
+    if (atual->direita != NULL) {
+        No* temp = atual->direita;
+        while (temp->esquerda != NULL)
+            temp = temp->esquerda;
+        return temp;
+    }
+
+    return sucessor;
+}
+
+
+int Primo(int n) {
+   if (n <= 1) return 0;
+   if (n == 2) return 1;
+   if (n % 2 == 0) return 0;
+   int i;
+   for (i = 3; i * i <= n; i += 2) {
+       if (n % i == 0) return 0;
+   }
+   return 1;
+}
+
+
+int contPrimos(No *raiz)
+{
+	if (raiz == NULL) 
+        return 0;
+        
+	int c = Primo(raiz->chave) ? 1 : 0;
+    return c + contPrimos(raiz->esquerda) + contPrimos(raiz->direita);
+
+}
+
+
+//arquivo main
+#include <stdio.h>
+#include <stdlib.h>
+#include "TAD.h"
+/* run this program using the console pauser or add your own getch, system("pause") or input loop */
+
+int main(int argc, char *argv[]) {
+    int escolha,valor,x;
+    No* raiz;
+    No* suc ;
+    
+    void apresentar ()
+    {
+    	printf("\nMenu!\n\n");
+        printf("1. Inserir \n");
+        printf("2. Remover \n");
+        printf("3. Imprimir  pre-ordem \n");
+        printf("4. Pesquisar \n");
+        printf("5. Sucessor \n");
+        printf("6. Contar de forma recursiva o numero de nos com valores primos \n");
+        printf("7. Sair\n\n");
+
+        printf("Escolha uma opcao: ");
+        scanf("%d", &escolha);
+        
+	}
+
+    while (escolha != 7)
+    {
+    	
+		apresentar ();
+        switch (escolha) {
+        case 1:
+        	printf("Insira um valor :");
+        	scanf("%d",&valor);
+            raiz = inserir(raiz, valor);
+            system("cls");
+			break;
+        case 2:
+        	printf("Insira um valor :");
+        	scanf("%d",&valor);
+            raiz = remover(raiz,valor);
+            break;
+        case 3:
+            preOrdem_BST(raiz);
+            break;
+        case 4:
+        	printf("Insira um valor :");
+        	scanf("%d",&valor);
+        	raiz = buscar(raiz, valor);
+            if (raiz != NULL) {
+              printf("Valor %d encontrado na arvore.\n", valor);
+            } else {
+              printf("Valor %d nao encontrado na arvore.\n", valor);
+            }
+            break;
+        case 5:
+        	printf("Insira um valor :");
+        	scanf("%d",&valor);
+        	suc = buscar(raiz, valor);
+            suc = Sucessor(raiz, valor);
+            if (suc)
+               printf("Sucessor de %d e %d\n", valor, suc->chave);
+            else
+               printf("Sucessor de %d não encontrado\n", valor);
+            break;
+        case 6:
+            printf("Nos com valores primos: %d\n", contPrimos(raiz));
+            break;
+        case 7:
+            printf("Saindo...\n");
+            return 0;
+        default:
+            printf("Opção inválida. Tente novamente.\n");
+      }
+   }
+  
+	return 0;
+}
+
+
