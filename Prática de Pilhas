@@ -1,0 +1,123 @@
+Pilha.h
+typedef struct pilha PILHA;
+
+PILHA *criar_pilha();
+PILHA *push(PILHA *p, int valor);
+int pop(PILHA *p);
+
+main.c
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include "pilha.h"
+
+typedef struct no {
+	int valor;
+	struct no *proximo;
+} NO;
+
+struct pilha {
+	NO *topo;
+};
+
+int main(int argc, char *argv[]) {
+	PILHA *p1 = criar_pilha(), *p2 = criar_pilha(), *aux = criar_pilha();
+	srand(time(NULL));
+	int N = 4;
+
+	for (int i = 1; i <= N; i++) {
+	    push(p1, rand() % 15); // Adiciona um numero aleatorio entre 0 e 99
+	    push(p2, rand() % 15);
+	}
+	for (int i = 1; i < 2 * N; i++) {
+	    push(aux, rand() % 15);
+	}
+
+//	Implementacao do jogo
+	while(p1->topo != NULL && p2->topo != NULL) {
+		if(p1->topo != NULL && p1->topo->valor > p2->topo->valor) {
+			printf("P1 vence a rodada. Removendo o topo de P2.\n");
+			pop(p2);
+		} else if (p2->topo->valor > p1->topo->valor) {
+			printf("P2 vence a rodada. Removendo o topo de P1.\n");
+			pop(p1);
+		} else if (p1->topo->valor < p2->topo->valor) {
+			pop(p1);
+		} else {
+			printf("Empate! Comparando valores.\n");
+
+			if (aux->topo != NULL) {
+				int temp1, temp2;
+				temp1 = pop(aux);
+				temp2 = pop(aux);
+				
+				if (temp1 > temp2) {
+					printf("P1 recebe o valor %d.\n", temp1);
+					push(p1, temp1);
+				} else {
+					printf("P2 recebe o valor %d.\n", temp2);
+					push(p2, temp1);
+				}
+			} else {
+				printf("Pilha auxiliar vazia. Jogo interrompido.\n");
+            	break;
+			}
+		}
+	}
+	
+	if (p1->topo == NULL) {
+        printf("P2 venceu o jogo!\n");
+    } else if (p2->topo == NULL) {
+        printf("P1 venceu o jogo!\n");
+    }
+    
+    free(p1);
+    free(p2);
+    free(aux);
+
+	return 0;
+}
+
+PILHA *criar_pilha() {
+	PILHA *nova_pilha = (PILHA *) malloc(sizeof(PILHA));
+	if (nova_pilha) {
+		nova_pilha->topo = NULL;
+	} else {
+		printf("Erro: Erro ao alocar memoria na funcao 'criar_pilha()'\n");
+	}
+	return nova_pilha;
+}
+
+PILHA *push(PILHA *p, int valor) {
+	if (p) {
+		NO *no = (NO *) malloc(sizeof(NO));
+		if (no) {
+			no->valor = valor;
+			no->proximo = p->topo;
+			p->topo = no;
+		} else {
+			printf("Erro: Erro ao alocar memoria na funcao 'push()'\n");
+		}
+	} else {
+		printf("Erro: Pilha nao criada\n");
+	}
+	return p;
+}
+
+int pop(PILHA *p) {
+	if (p != NULL) {
+		if (p->topo != NULL) {
+			NO *aux = p->topo;
+			int i = aux->valor;
+			p->topo = aux->proximo;
+			free(aux);
+			return i;
+
+
+
+		}
+	} else {
+		printf("Erro: Pilha nao foi inicializada.\n");
+		return -1;
+	}
+}
