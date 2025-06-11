@@ -2,7 +2,7 @@ Pilha.h
 typedef struct pilha PILHA;
 
 PILHA *criar_pilha();
-PILHA *push(PILHA *p, int valor);
+PILHA *push(PILHA *p, int  valor);
 int pop(PILHA *p);
 
 main.c
