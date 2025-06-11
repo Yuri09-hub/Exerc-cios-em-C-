@@ -2,10 +2,7 @@
 #include<stdlib.h>
 #include<string.h>
 
-/*. Implemente uma função que recebe uma string e um caracter especial e 
-substitua todas as vogais da string pelo caracter recebido. Retorne a 
-string modificada. A função deve ter a seguinte assinatura: 
- char * encriptacao(char * s, char c)*/
+
  
  char * encriptacao(char * s, char c){
 int i; 
