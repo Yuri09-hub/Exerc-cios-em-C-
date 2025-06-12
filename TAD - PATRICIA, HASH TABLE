@@ -1,0 +1,340 @@
+# PATRICIA.H
+
+#ifndef PATRICIA_H
+#define PATRICIA_H
+
+typedef struct No {
+    char* prefixo;
+    int folha;
+    struct No* esquerda;
+    struct No* direita;
+} No;
+
+No* criar_arvore();
+No* inserir(No* raiz, const char* palavra);
+No* remover(No* raiz, const char* palavra);
+int buscar(No* raiz, const char* palavra);
+void imprimir_pre_ordem(No* raiz,No* parent);
+void liberar(No* raiz);
+
+#endif
+
+# PATRICIA.c
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "patricia.h"
+
+static No* criar_no(const char* prefixo, int folha) {
+    No* no = (No*)malloc(sizeof(No));
+    no->prefixo = strdup(prefixo);
+    no->folha = folha;
+    no->esquerda = NULL;
+    no->direita = NULL;
+    return no;
+}
+
+No* criar_arvore() {
+    return NULL;
+}
+
+static int prefixo_comum(const char* a, const char* b) {
+    int i = 0;
+    while (a[i] && b[i] && a[i] == b[i]) i++;
+    return i;
+}
+
+No* inserir(No* raiz, const char* palavra) {
+    if (!raiz)
+        return criar_no(palavra, 1);
+
+    int comum = prefixo_comum(palavra, raiz->prefixo);
+
+    if (comum == 0) {
+        if (palavra[0] < raiz->prefixo[0])
+            raiz->esquerda = inserir(raiz->esquerda, palavra);
+        else
+            raiz->direita = inserir(raiz->direita, palavra);
+    } else if (comum < strlen(raiz->prefixo)) {
+        No* novo_filho = criar_no(raiz->prefixo + comum, raiz->folha);
+        novo_filho->esquerda = raiz->esquerda;
+        novo_filho->direita = raiz->direita;
+
+        raiz->prefixo[comum] = '\0';
+        raiz->folha = 0;
+        raiz->esquerda = raiz->direita = NULL;
+
+        if (palavra[comum] < novo_filho->prefixo[0])
+            raiz->esquerda = inserir(NULL, palavra + comum);
+        else
+            raiz->direita = inserir(NULL, palavra + comum);
+
+        if (novo_filho->prefixo[0] < palavra[comum])
+            raiz->esquerda = novo_filho;
+        else
+            raiz->direita = novo_filho;
+    } else {
+        raiz->direita = inserir(raiz->direita, palavra + comum);
+    }
+
+    return raiz;
+}
+
+int buscar(No* raiz, const char* palavra) {
+    if (!raiz) return 0;
+
+    int comum = prefixo_comum(palavra, raiz->prefixo);
+    if (comum < strlen(raiz->prefixo)) return 0;
+    if (comum == strlen(palavra)) return raiz->folha;
+
+    return buscar(raiz->direita, palavra + comum);
+}
+
+static int sem_filhos(No* no) {
+    return !no->esquerda && !no->direita;
+}
+
+static No* remover_rec(No* raiz, const char* palavra, int* removido) {
+    if (!raiz) return NULL;
+
+    if (raiz->folha) {
+        if (strcmp(raiz->prefixo, palavra) == 0) {
+            *removido = 1;
+            free(raiz->prefixo);
+            free(raiz);
+            return NULL;
+        }
+        return raiz;
+    }
+
+    raiz->esquerda = remover_rec(raiz->esquerda, palavra, removido);
+    raiz->direita = remover_rec(raiz->direita, palavra, removido);
+
+    if (raiz->esquerda && raiz->direita) return raiz;
+
+    No* filho = raiz->esquerda ? raiz->esquerda : raiz->direita;
+    free(raiz);
+    return filho;
+}
+
+No* remover(No* raiz, const char* palavra) {
+    int removido = 0;
+    return remover_rec(raiz, palavra, &removido);
+}
+
+ /*void imprimir_pre_ordem(No* raiz) {
+    if (!raiz) return;
+    printf("%s%s\n", raiz->prefixo, raiz->folha ? " " : "");
+    imprimir_pre_ordem(raiz->esquerda);
+    imprimir_pre_ordem(raiz->direita);
+}*/
+
+void imprimir_pre_ordem(No *root, No *parent) {
+    if (!root) return;
+    // Nó só é folha se bitIndex <= parent's bitIndex
+    if (parent == NULL || root->folha > parent->folha) {
+        printf("%s\n", root->prefixo);
+        imprimir_pre_ordem(root->esquerda, root);
+        imprimir_pre_ordem(root->direita, root);
+    }
+}
+
+void liberar(No* raiz) {
+    if (!raiz) return;
+    liberar(raiz->esquerda);
+    liberar(raiz->direita);
+    free(raiz->prefixo);
+    free(raiz);
+}
+
+#HASH TABLE.H
+
+#ifndef HASHTABLE_H
+#define HASHTABLE_H
+
+#define TAM 13
+
+typedef struct {
+    int tabela[TAM];
+} HashTable;
+
+void inicializar(HashTable *ht);
+int hash1(int chave);
+int hash2(int chave);
+int inserir_h(HashTable *ht, int chave);
+int pesquisar(HashTable *ht, int chave);
+void imprimir(HashTable *ht);
+
+#endif
+
+#include <stdio.h>
+#include "hashtable.h"
+
+void inicializar(HashTable *ht) {
+	int i;
+    for (i = 0; i < TAM; i++) {
+        ht->tabela[i] = -1;
+    }
+}
+
+int hash1(int chave) {
+    return chave % TAM;
+}
+
+int hash2(int chave) {
+    return 1 + (chave % (TAM - 1));
+}
+
+int inserir_h(HashTable *ht, int chave) {
+	int i;
+    for (i = 0; i < TAM; i++) {
+        int pos = (hash1(chave) + i * hash2(chave)) % TAM;
+        if (ht->tabela[pos] == -1) {
+            ht->tabela[pos] = chave;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int pesquisar(HashTable *ht, int chave) {
+	int i;
+    for (i = 0; i < TAM; i++) {
+        int pos = (hash1(chave) + i * hash2(chave)) % TAM;
+        if (ht->tabela[pos] == -1) return 0;
+        if (ht->tabela[pos] == chave) return 1;
+    }
+    return 0;
+}
+
+void imprimir(HashTable *ht) {
+    printf("Hash Table:\n");
+    int i;
+    for (i = 0; i < TAM; i++) {
+        if (ht->tabela[i] != -1)
+            printf("[%d] -> %d\n", i, ht->tabela[i]);
+        else
+            printf("[%d] -> (vazio)\n", i);
+    }
+}
+
+#main.c 
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "Patricia.h"
+#include "hashtable.h"
+
+
+void menu_hash() {
+    HashTable ht;
+    inicializar(&ht);
+    int opcao, chave;
+
+    do {
+        printf("\n--- Menu Hash Table ---\n");
+        printf("1. Inserir chave\n");
+        printf("2. Pesquisar chave\n");
+        printf("3. Imprimir tabela\n");
+        printf("0. Voltar\n");
+        printf("Opcao: ");
+        scanf("%d", &opcao);
+
+        switch (opcao) {
+            case 1:
+                printf("Chave: ");
+                scanf("%d", &chave);
+                if (inserir_h(&ht, chave))
+                    printf("Inserida.\n");
+                else
+                    printf("Tabela cheia.\n");
+                break;
+            case 2:
+                printf("Chave: ");
+                scanf("%d", &chave);
+                if (pesquisar(&ht, chave))
+                    printf("Encontrada.\n");
+                else
+                    printf("Nao encontrada.\n");
+                break;
+            case 3:
+                imprimir(&ht);
+                break;
+        }
+    } while (opcao != 0);
+}
+
+void menu_patricia() {
+    No* arvore = NULL;
+    No* arv = NULL;
+    int opcao;
+    char palavra[100];
+
+    do {
+        printf("\n[Patricia Trie]\n");
+        printf("1. Inserir palavra\n");
+        printf("2. Remover palavra\n");
+        printf("3. Buscar palavra\n");
+        printf("4. Imprimir pre-ordem\n");
+        printf("0. Voltar\n");
+        printf("Escolha: ");
+        scanf("%d", &opcao); getchar();
+
+        switch (opcao) {
+            case 1:
+                printf("Palavra: ");
+                fgets(palavra, 100, stdin);
+                palavra[strcspn(palavra, "\n")] = 0;
+                arvore = inserir(arvore, palavra);
+                break;
+            case 2:
+                printf("Palavra: ");
+                fgets(palavra, 100, stdin);
+                palavra[strcspn(palavra, "\n")] = 0;
+                arvore = remover(arvore, palavra);
+                break;
+            case 3:
+                printf("Palavra: ");
+                fgets(palavra, 100, stdin);
+                palavra[strcspn(palavra, "\n")] = 0;
+                printf("Resultado: %s\n", buscar(arvore, palavra) ? "Encontrada" : "NAO encontrada");
+                break;
+            case 4:
+                imprimir_pre_ordem(arvore,arv);
+                break;
+            case 0:
+                break;
+            default:
+                printf("Opcao invalida.\n");
+        }
+    } while (opcao != 0);
+}
+
+
+int main() {
+    int opcao;
+
+    do {
+        printf("\n===== MENU PRINCIPAL =====\n");
+        printf("1. Patricia Trie\n");
+        printf("2. Tabela Hash\n");
+        printf("0. Sair\n");
+        printf("Escolha uma estrutura: ");
+        scanf("%d", &opcao);
+        getchar(); // limpa o \n
+
+        switch (opcao) {
+            case 1: menu_patricia(); break;
+            case 2: menu_hash(); break;
+            case 0: printf("Encerrando programa...\n"); break;
+            default: printf("Opcao invalida.\n");
+        }
+
+    } while (opcao != 0);
+
+    return 0;
+}
+
+
